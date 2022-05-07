@@ -13,10 +13,19 @@ def recognizeText(filename):
         return text
 
 
-def loadRealOutput():
-    filename = './translations/trans1.txt'
+def recognizeTextRO(filename):
+    r = sr.Recognizer()
+    with sr.AudioFile(filename) as source:
+        # listen for the data (load audio to memory)
+        audio_data = r.record(source)
+        # recognize (convert from speech to text)
+        text = r.recognize_google(audio_data,language='ro')
+        return text
+
+def loadRealOutput(translations):
+
     res = []
-    with open(filename) as f:
+    with open(translations, 'rt', encoding='utf-8') as f:
         lines = f.readlines()
         for line in lines:
             low = line.lower()
@@ -24,9 +33,9 @@ def loadRealOutput():
     return res
 
 
-def loadComputedOutput():
+def loadComputedOutput(directory):
 
-    directory = 'dataset1'
+
     output = []
     # iterate over files in
     # that directory
@@ -34,7 +43,11 @@ def loadComputedOutput():
         f = os.path.join(directory, filename)
         # checking if it is a file
         if os.path.isfile(f):
-            to_add = [f,recognizeText(f)]
+            recognized = ""
+            if directory == 'dataset1':
+                to_add = [f,recognizeText(f)]
+            else:
+                to_add = [f, recognizeTextRO(f)]
             output.append(to_add)
     return output
 
@@ -106,25 +119,12 @@ def getError(realOut,computedOut):
     return totalError/len(realOut)
 
 
-
-
 if __name__ == "__main__":
-    import doctest
 
-    doctest.testmod()
-
-
-
-
-
-def main():
-
-
-    filename = './dataset1/1272-141231-0000.flac'
-
-if __name__ == "__main__":
-    #main()
-    modelErr = getError(loadRealOutput(),loadComputedOutput())
-    print('Totla error:',modelErr)
+    modelErr = getError(loadRealOutput('./translations/trans1.txt'), loadComputedOutput('dataset1'))
+    print('En-error:',modelErr)
+    print()
+    modelErrRO = getError(loadRealOutput('./translations/Recording.trans.txt'), loadComputedOutput('dataset2'))
+    print('RO-error',modelErrRO)
 
 
