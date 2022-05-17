@@ -1,6 +1,9 @@
 import os
 
+import six
+from googletrans import Translator
 import speech_recognition as sr
+from pythonTranslateMain.google.cloud.translate_v2.client import Client
 
 
 def recognizeText(filename):
@@ -121,10 +124,38 @@ def getError(realOut,computedOut):
 
 if __name__ == "__main__":
 
-    modelErr = getError(loadRealOutput('./translations/trans1.txt'), loadComputedOutput('dataset1'))
-    print('En-error:',modelErr)
-    print()
-    modelErrRO = getError(loadRealOutput('./translations/Recording.trans.txt'), loadComputedOutput('dataset2'))
-    print('RO-error',modelErrRO)
+    # modelErr = getError(loadRealOutput('./translations/trans1.txt'), loadComputedOutput('dataset1'))
+    # print('En-error:',modelErr)
+    # print()
+    # modelErrRO = getError(loadRealOutput('./translations/Recording.trans.txt'), loadComputedOutput('dataset2'))
+    # print('RO-error',modelErrRO)
+
+    text_eng = recognizeText("dataset1/1272-141231-0000.flac")
+    print(text_eng)
+    translator = Translator()
+    translation = translator.translate(text_eng, dest='ro', src='en')
+    print(translation.text)
+
+
+
+
+
+
+    # import six
+    # from pythonTranslateMain.google.cloud.translate_v2 import translate_v2 as translate
+
+    # translate_client = Client()
+    #
+    # if isinstance(text_eng, six.binary_type):
+    #     text_eng = text_eng.decode("utf-8")
+    #
+    # # Text can also be a sequence of strings, in which case this method
+    # # will return a sequence of results for each text.
+    # result = translate_client.translate(text_eng, target_language='ro')
+    #
+    # print(u"Text: {}".format(result["input"]))
+    # print(u"Translation: {}".format(result["translatedText"]))
+    # print(u"Detected source language: {}".format(result["detectedSourceLanguage"]))
+
 
 
