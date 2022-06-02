@@ -1,6 +1,10 @@
 import os
 
+
 import speech_recognition as sr
+from google_trans_new import google_translator
+from gtts import gTTS
+
 
 
 def recognizeText(filename):
@@ -11,6 +15,7 @@ def recognizeText(filename):
         # recognize (convert from speech to text)
         text = r.recognize_google(audio_data)
         return text
+
 
 
 def recognizeTextRO(filename):
@@ -57,12 +62,8 @@ def loadComputedOutput(directory):
 
 def wer(r, h):
     """
-    Calculation of WER with Levenshtein distance.
 
-    Works only for iterables up to 254 elements (uint8).
-    O(nm) time ans space complexity.
 
-    Parameters
     ----------
     r : list
     h : list
@@ -119,12 +120,46 @@ def getError(realOut,computedOut):
     return totalError/len(realOut)
 
 
+def dialog():
+    phrases_number_to_consider = 22
+    speaker1_dataset_prefix = "dataset1/1272-141231-00"
+    speaker2_dataset_prefix = "dataset2/Recording"
+    spoken_fileName = "./spoken/current.mp3"
+    translator = google_translator()
+    for i in range(1,phrases_number_to_consider):
+
+        speaker1_filenameString = ""
+        speaker2_filenameString = ""
+        if i >= 10:
+            speaker1_filenameString = speaker1_dataset_prefix + str(i) + ".flac"
+        else:
+            speaker1_filenameString = speaker1_dataset_prefix + "0" + str(i) + ".flac"
+
+        speaker2_filenameString = speaker2_dataset_prefix + str(i) + ".flac"
+        # speaker one
+        text_eng = recognizeText(speaker1_filenameString)
+        print("*************************************************************")
+        print("Speaker 1(EN):"+text_eng)
+        translation = translator.translate(text_eng, lang_tgt='ro')
+        print("Speaker 1(RO):" + translation)
+
+
+        myobj = gTTS(text=translation, lang='ro', slow=False)
+
+        myobj.save(spoken_fileName)
+        # here it should speak the spoken_fileName
+        #speaker two
+        text_ro = recognizeTextRO(speaker2_filenameString)
+        print("Speaker 2(RO):"+text_ro)
+        translation = translator.translate(text_ro,lang_tgt='en')
+        print("Speaker 2(EN):" + translation)
+        myobj = gTTS(text=translation, lang='en', slow=False)
+        myobj.save(spoken_fileName)
+        # here it should speak the spoken_fileName
+
+        print("*************************************************************")
+
+
 if __name__ == "__main__":
 
-    modelErr = getError(loadRealOutput('./translations/trans1.txt'), loadComputedOutput('dataset1'))
-    print('En-error:',modelErr)
-    print()
-    modelErrRO = getError(loadRealOutput('./translations/Recording.trans.txt'), loadComputedOutput('dataset2'))
-    print('RO-error',modelErrRO)
-
-
+    dialog()
