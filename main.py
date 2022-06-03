@@ -1,9 +1,8 @@
 import os
 
-import six
+
 from googletrans import Translator
 import speech_recognition as sr
-from pythonTranslateMain.google.cloud.translate_v2.client import Client
 from gtts import gTTS
 from playsound import playsound
 
@@ -24,23 +23,21 @@ def recognizeTextRO(filename):
         # listen for the data (load audio to memory)
         audio_data = r.record(source)
         # recognize (convert from speech to text)
-        text = r.recognize_google(audio_data,language='ro')
+        text = r.recognize_google(audio_data, language='ro')
         return text
 
-def loadRealOutput(translations):
 
+def loadRealOutput(translations):
     res = []
     with open(translations, 'rt', encoding='utf-8') as f:
         lines = f.readlines()
         for line in lines:
             low = line.lower()
-            res.append(low[:len(low)-1])
+            res.append(low[:len(low) - 1])
     return res
 
 
 def loadComputedOutput(directory):
-
-
     output = []
     # iterate over files in
     # that directory
@@ -50,14 +47,14 @@ def loadComputedOutput(directory):
         if os.path.isfile(f):
             recognized = ""
             if directory == 'dataset1':
-                to_add = [f,recognizeText(f)]
+                to_add = [f, recognizeText(f)]
             else:
                 to_add = [f, recognizeTextRO(f)]
             output.append(to_add)
     return output
 
 
-#!/usr/bin/env python
+# !/usr/bin/env python
 
 
 def wer(r, h):
@@ -111,51 +108,89 @@ def wer(r, h):
     return d[len(r)][len(h)]
 
 
-def getError(realOut,computedOut):
-
+def getError(realOut, computedOut):
     i = 0
     totalError = 0
     for elem in realOut:
         split = elem.split()
         realPhrase = split[1:]
-        err = wer(realPhrase,computedOut[i][1].split())
+        err = wer(realPhrase, computedOut[i][1].split())
         totalError = totalError + err
-        i = i+1
-    return totalError/len(realOut)
+        i = i + 1
+    return totalError / len(realOut)
+
+
+def dialog():
+    phrases_number_to_consider = 22
+    speaker1_dataset_prefix = "./dataset1/1272-141231-00"
+    speaker2_dataset_prefix = "./dataset2/Recording"
+    translator = Translator()
+
+    for i in range(1, phrases_number_to_consider):
+
+        spoken_fileNameRO = "./spoken/currentRO"
+        spoken_fileNameENG = "./spoken/currentENG"
+        if i >= 10:
+            speaker1_filenameString = speaker1_dataset_prefix + str(i) + ".flac"
+        else:
+            speaker1_filenameString = speaker1_dataset_prefix + "0" + str(i) + ".flac"
+
+        speaker2_filenameString = speaker2_dataset_prefix + str(i) + ".flac"
+
+        # speaker one
+        text_eng = recognizeText(speaker1_filenameString)
+        print("*************************************************************")
+        print("Speaker 1(EN):" + text_eng)
+        translation = translator.translate(text_eng, dest='ro', src='en')
+        print("Speaker 1(RO):" + translation.text)
+        myobj = gTTS(text=translation.text, lang='ro', slow=False)
+        spoken_fileNameRO += str(i) + ".mp3"
+        myobj.save(spoken_fileNameRO)
+        playsound(spoken_fileNameRO)
+
+        # speaker two
+        text_ro = recognizeTextRO(speaker2_filenameString)
+        print("Speaker 2(RO):" + text_ro)
+        translation = translator.translate(text_ro, dest='en', src='ro')
+        print("Speaker 2(EN):" + translation.text)
+        myobj = gTTS(text=translation.text, lang='en', slow=False)
+        spoken_fileNameENG += str(i) + ".mp3"
+        myobj.save(spoken_fileNameENG)
+        playsound(spoken_fileNameENG)
+
+        print("*************************************************************")
 
 
 if __name__ == "__main__":
+    dialog()
 
-    # modelErr = getError(loadRealOutput('./translations/trans1.txt'), loadComputedOutput('dataset1'))
-    # print('En-error:',modelErr)
-    # print()
-    # modelErrRO = getError(loadRealOutput('./translations/Recording.trans.txt'), loadComputedOutput('dataset2'))
-    # print('RO-error',modelErrRO)
-
-    text_eng = recognizeText("dataset1/1272-141231-0005.flac")
-    print(text_eng)
-    translator = Translator()
-    translation = translator.translate(text_eng, dest='ro', src='en')
-    print(translation.text)
-
-    language = 'ro'
-    file = "./spoken/welcomeRO.mp3"
-    myobj = gTTS(text=translation.text, lang=language, slow=False)
-    myobj.save(file)
-    playsound(file)
-
-    text_ro = recognizeTextRO("dataset2/Recording1.flac")
-    print(text_ro)
-    translator2 = Translator()
-    translation_ro = translator2.translate(text_ro, dest='en', src='ro')
-    print(translation_ro.text)
-
-    language = 'en'
-    file = "./spoken/welcomeENG.mp3"
-    myobj_ro = gTTS(text=translation_ro.text, lang=language, slow=False)
-    myobj_ro.save(file)
-    playsound(file)
-
-
-
-
+# if __name__ == "__main__":
+#     # modelErr = getError(loadRealOutput('./translations/trans1.txt'), loadComputedOutput('dataset1'))
+#     # print('En-error:',modelErr)
+#     # print()
+#     # modelErrRO = getError(loadRealOutput('./translations/Recording.trans.txt'), loadComputedOutput('dataset2'))
+#     # print('RO-error',modelErrRO)
+#
+#     text_eng = recognizeText("dataset1/1272-141231-0005.flac")
+#     print(text_eng)
+#     translator = Translator()
+#     translation = translator.translate(text_eng, dest='ro', src='en')
+#     print(translation.text)
+#
+#     language = 'ro'
+#     file = "./spoken/welcomeRO.mp3"
+#     myobj = gTTS(text=translation.text, lang=language, slow=False)
+#     myobj.save(file)
+#     playsound(file)
+#
+#     text_ro = recognizeTextRO("dataset2/Recording1.flac")
+#     print(text_ro)
+#     translator2 = Translator()
+#     translation_ro = translator2.translate(text_ro, dest='en', src='ro')
+#     print(translation_ro.text)
+#
+#     language = 'en'
+#     file = "./spoken/welcomeENG.mp3"
+#     myobj_ro = gTTS(text=translation_ro.text, lang=language, slow=False)
+#     myobj_ro.save(file)
+#     playsound(file)
