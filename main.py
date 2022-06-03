@@ -4,6 +4,8 @@ import six
 from googletrans import Translator
 import speech_recognition as sr
 from pythonTranslateMain.google.cloud.translate_v2.client import Client
+from gtts import gTTS
+from playsound import playsound
 
 
 def recognizeText(filename):
@@ -130,32 +132,30 @@ if __name__ == "__main__":
     # modelErrRO = getError(loadRealOutput('./translations/Recording.trans.txt'), loadComputedOutput('dataset2'))
     # print('RO-error',modelErrRO)
 
-    text_eng = recognizeText("dataset1/1272-141231-0000.flac")
+    text_eng = recognizeText("dataset1/1272-141231-0005.flac")
     print(text_eng)
     translator = Translator()
     translation = translator.translate(text_eng, dest='ro', src='en')
     print(translation.text)
 
+    language = 'ro'
+    file = "./spoken/welcomeRO.mp3"
+    myobj = gTTS(text=translation.text, lang=language, slow=False)
+    myobj.save(file)
+    playsound(file)
 
+    text_ro = recognizeTextRO("dataset2/Recording1.flac")
+    print(text_ro)
+    translator2 = Translator()
+    translation_ro = translator2.translate(text_ro, dest='en', src='ro')
+    print(translation_ro.text)
 
+    language = 'en'
+    file = "./spoken/welcomeENG.mp3"
+    myobj_ro = gTTS(text=translation_ro.text, lang=language, slow=False)
+    myobj_ro.save(file)
+    playsound(file)
 
-
-
-    # import six
-    # from pythonTranslateMain.google.cloud.translate_v2 import translate_v2 as translate
-
-    # translate_client = Client()
-    #
-    # if isinstance(text_eng, six.binary_type):
-    #     text_eng = text_eng.decode("utf-8")
-    #
-    # # Text can also be a sequence of strings, in which case this method
-    # # will return a sequence of results for each text.
-    # result = translate_client.translate(text_eng, target_language='ro')
-    #
-    # print(u"Text: {}".format(result["input"]))
-    # print(u"Translation: {}".format(result["translatedText"]))
-    # print(u"Detected source language: {}".format(result["detectedSourceLanguage"]))
 
 
 
